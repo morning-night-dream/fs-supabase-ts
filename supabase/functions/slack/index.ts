@@ -42,13 +42,13 @@ serve(async (request: { json: () => any }) => {
 
   console.debug(JSON.stringify(event));
 
-  console.info(
-    `received event type: ${event.type}, sub type: ${event.event.subtype}`,
-  );
-
   if (event.type === "url_verification") {
     return new Response(JSON.stringify(event.challenge));
   }
+
+  console.info(
+    `received event type: ${event.type}, sub type: ${event.event.subtype}`,
+  );
 
   return new Response(
     JSON.stringify(""),
