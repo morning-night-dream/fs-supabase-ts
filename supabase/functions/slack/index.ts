@@ -1,25 +1,57 @@
-// Follow this setup guide to integrate the Deno language server with your editor:
-// https://deno.land/manual/getting_started/setup_your_environment
-// This enables autocomplete, go to definition, etc.
+import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 
-import { serve } from "https://deno.land/std@0.131.0/http/server.ts"
+export type Env = {
+  API_KEY: string;
+  VERIFICATION_TOKEN: string;
+  CORE_APP_ENDPOINT_V1_ARTICLE_SHARE: string;
+};
 
-console.log("Hello from Functions!")
+export type SlackEventType = "url_verification" | "event_callback";
 
-serve(async (req) => {
-  const { name } = await req.json()
-  const data = {
-    message: `Hello Supabase ${name}!`,
+export type SlackEvent = {
+  token: string;
+  challenge: string;
+  type: SlackEventType;
+  event: Event;
+};
+
+export type EventType = "message";
+
+export type EventSubType = "message_changed";
+
+export type Event = {
+  type: EventType;
+  subtype: EventSubType;
+  text: string;
+  user: string;
+  ts: number;
+};
+
+const env: Env = {
+  API_KEY: Deno.env.get("API_KEY") ?? "",
+  VERIFICATION_TOKEN: Deno.env.get("VERIFICATION_TOKEN") ?? "",
+  CORE_APP_ENDPOINT_V1_ARTICLE_SHARE: Deno.env.get(
+    "CORE_APP_ENDPOINT_V1_ARTICLE_SHARE",
+  ) ?? "",
+};
+
+serve(async (request: { json: () => any }) => {
+  const req = await request.json();
+
+  const event: SlackEvent = JSON.parse(JSON.stringify(req));
+
+  console.debug(JSON.stringify(event));
+
+  console.info(
+    `received event type: ${event.type}, sub type: ${event.event.subtype}`,
+  );
+
+  if (event.type === "url_verification") {
+    return new Response(JSON.stringify(event.challenge));
   }
 
   return new Response(
-    JSON.stringify(data),
+    JSON.stringify(""),
     { headers: { "Content-Type": "application/json" } },
-  )
-})
-
-// To invoke:
-// curl -i --location --request POST 'http://localhost:54321/functions/v1/' \
-//   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-//   --header 'Content-Type: application/json' \
-//   --data '{"name":"Functions"}'
+  );
+});

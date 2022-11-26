@@ -19,5 +19,11 @@ jobs:
       - name: Supabase setup
         uses: supabase/setup-cli@v1
 
+      - name: Supabase sercets
+        run: |
+          supabase secrets set API_KEY=${{ secrets.API_KEY }}
+          supabase secrets set VERIFICATION_TOKEN=${{ secrets.VERIFICATION_TOKEN }}
+          supabase secrets set CORE_APP_ENDPOINT_V1_ARTICLE_SHARE=${{ secrets.CORE_APP_ENDPOINT_V1_ARTICLE_SHARE }}
+
       - name: Deploy
         run: supabase functions deploy slack --no-verify-jwt --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
