@@ -9,7 +9,7 @@ console.log("Hello from Functions!")
 serve(async (req) => {
   const { name } = await req.json()
   const data = {
-    message: `Hello ${name}!`,
+    message: `Hello Supabase ${name}!`,
   }
 
   return new Response(
