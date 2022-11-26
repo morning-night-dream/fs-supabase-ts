@@ -35,6 +35,35 @@ const env: Env = {
   ) ?? "",
 };
 
+export const callback = async (
+  event: SlackEvent,
+  endpoint: string,
+  key: string,
+) => {
+  console.log(event.type);
+  const pattern = /http(.*):\/\/([a-zA-Z0-9/\-\_\.]*)/;
+  try {
+    const url = event.event.text.match(pattern)?.find((s) => s);
+    console.log(url);
+
+    const init = {
+      body: JSON.stringify({ url: url }),
+      method: "POST",
+      headers: {
+        "X-API-KEY": key,
+        "Content-Type": "application/json",
+      },
+    };
+    const res = await fetch(endpoint, init);
+
+    console.debug(res);
+  } catch (e) {
+    console.warn(e);
+    // 不要なリトライを防ぐため握りつぶす
+    return;
+  }
+};
+
 serve(async (request: { json: () => any }) => {
   const req = await request.json();
 
@@ -49,6 +78,16 @@ serve(async (request: { json: () => any }) => {
   console.info(
     `received event type: ${event.type}, sub type: ${event.event.subtype}`,
   );
+
+  if (
+    event.type === "event_callback" && event.event.subtype === "message_changed"
+  ) {
+    return new Response(JSON.stringify(""));
+  }
+
+  if (event.type === "event_callback") {
+    callback(event, env.CORE_APP_ENDPOINT_V1_ARTICLE_SHARE, env.API_KEY);
+  }
 
   return new Response(
     JSON.stringify(""),
