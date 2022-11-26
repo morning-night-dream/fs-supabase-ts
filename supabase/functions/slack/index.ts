@@ -35,6 +35,12 @@ const env: Env = {
   ) ?? "",
 };
 
+export const verify = (token1: string, token2: string) => {
+  if (token1 !== token2) {
+    throw new Error("token mismatch");
+  }
+};
+
 export const callback = async (
   event: SlackEvent,
   endpoint: string,
@@ -70,6 +76,8 @@ serve(async (request: { json: () => any }) => {
   const event: SlackEvent = JSON.parse(JSON.stringify(req));
 
   console.debug(JSON.stringify(event));
+
+  verify(event.token, env.VERIFICATION_TOKEN);
 
   if (event.type === "url_verification") {
     return new Response(JSON.stringify(event.challenge));
